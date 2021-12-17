@@ -1,0 +1,962 @@
+<!--------------------------------------------------------------------------------------------------
+    Single Page Application
+    nouvelleS MANAGER WEB CLIENT
+
+    LAST UPDATE: november 2021
+    Author: Nicolas Chourot
+    Lionel-Groulx College
+----------------------------------------------------------------------------------------------------->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta author="Nicolas Chourot">
+    <meta http-equiv="Content-Type" content="text/html; charset= ISO-8859-1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Gestionnaire de nouvelles</title>
+
+    <!---STYLES BUNDLE -------------------------------------------------------------------------->
+    <link rel="stylesheet" href="css/jquery-ui.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+    <!-- Tooltips styles -->
+    <link rel="stylesheet" href="css/tooltip.css">
+
+    <!-- Confirm dialog styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.2/jquery-confirm.min.css">
+    <!-- Font awesome styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- nouvelle manager main layout styles -->
+    <link rel="stylesheet" href="css/nouvellesManagerLayout.css">
+
+    <!-- favicon link: use https://favicon.io/favicon-converter/ to create new favicon -->
+    <link rel="icon" href="favicon.ico">
+
+    <!---Page backgroung image------------------------------------------------------------------>
+    <style>
+        body {
+            background: url(images/bg.png) no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <!---nouvelleS MANAGER UI CONTAINER--------------------------------------------------------->
+    <div class="container">
+        <!---TITLE AND USER CONNECTION UI------------------------------------------------------->
+        <div class="title-container">
+            <div>
+                <h1>
+                    <div id="btn_RefreshButton"><img src="images/favicon.png"style="height: 60px; margin-right:8px;float:left;"></imgsrc></button>
+                    Gestionnaire de nouvelles
+                </h1>
+            </div>
+            <div class="user-management-container">
+                <div style="margin-left:10px;margin-top:26px;text-align:left;">
+                    <div id="avatarContainer"></div>
+                    <h4 id="username">non connecté</h4>
+                </div>
+                <div style="margin-top:30px;text-align:right;">
+                    <div id="btn_OpenLoginForm" tooltip="Connexion" tooltip-position="left">
+                        <span id="showSearchIcon" class="giconBig glyphicon glyphicon-log-in">&nbsp;</span>
+                    </div>
+                    <div id="btn_OpenConfirmLogout" tooltip="Déconnexion" tooltip-position="bottom">
+                        <span id="showSearchIcon" class="giconBig glyphicon glyphicon-log-out">&nbsp;</span>
+                    </div>
+                    <div id="btn_OpenProfilDialog" tooltip="Enregistrement" tooltip-position="left">
+                        <img src="images/register.png" id="showRegister" class="icon">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="array-container">
+            <!---nouvelleS LIST HEAD----------------------------------------------------------->
+            <div class="header-container">
+                <div class="header-nouvelles-container columns-layout">
+                    <div id="showSearch" tooltip="Barre de recherche" tooltip-position="left">
+                        <span id="showSearchIcon" class="gicon glyphicon glyphicon-zoom-in"></span>
+                    </div>
+                    <div id="btn_OpenAddnouvelleDialog" tooltip="Ajouter une nouvelle" tooltip-position="left">
+                        <span class="gicon glyphicon glyphicon-plus"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!---SEARCH BAR--------------------------------------------------------------------->
+            <div class="searchBar columns-layout">
+                <div>
+                    <!--<input type="search" placeholder="Date..." id="search_created">-->
+                </div>
+                <div><input type="search" placeholder="Mot Clé..." id="search_Texte"></div>
+
+                <div><input type="search" placeholder="Usager..." id="search_user"></div>
+                <div></div>
+                <div></div>
+            </div>
+
+            <!---nouvelleS LIST----------------------------------------------------------------->
+            <div class="nouvelle-list-scroll-containter">
+                <div class="nouvelle-list-container" id="nouvelleList">
+                    <!-- La liste de nouvelles sera injectée ici par du JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!---nouvelle DIALOG------------------------------------------------------------------------>
+    <div id="dialog-nouvelleForm" title="nouvelle" class="dialog">
+        <form id="nouvelleForm" class="form-group">
+            <input type="hidden" id="nouvelleId" />
+            <input type="hidden" id="nouvelleUserId" />
+            <input type="hidden" id="nouvelleGUID" />
+            <input type="hidden" id="nouvelleCreated" />
+            <input type="text" id="nouvelleTitle" placeholder="Titre" class="form-control" />
+            <input type="text" id="nouvelleTexte" placeholder="Texte" class="form-control" />
+            <table>
+            </table>
+            <div style="vertical-align:top; text-align: center ">
+                <div class='imageDownloader' id='nouvelle' defautImageSrc='images/No_image.png'></div>
+                <label>(cliquez pour la changer l'image)</label>
+            </div>
+        </form>
+    </div>
+
+    <!---LOGIN DIALOG--------------------------------------------------------------------------->
+    <div id="dialog-loginForm" title="Connexion" class="dialog">
+        <form id="loginForm" class="form-group">
+            <input type="text" id="loginEmail" placeholder="Courriel" class="form-control" />
+            <input type="password" id="loginPassword" placeholder="Mot de passe" class="form-control" />
+            <br>
+            <div class="form-group form-check">
+                <input type="checkbox" class="form-check-input" id="remember-me">
+                <label class="form-check-label" for="remember-me">Se souvenir de moi</label>
+            </div>
+        </form>
+    </div>
+
+    <!---PROFIL DIALOG-------------------------------------------------------------------------->
+    <div id="dialog-profilForm" title="Profil" class="dialog">
+        <form id="profilForm" class="form-group">
+            <input type="hidden" id="avatarGUID" />
+            <input type="hidden" id="profilId" />
+            <input type="text" id="profilUsername" placeholder="Nom d'usager" class="form-control" />
+            <input type="text" id="profilEmail" placeholder="Courriel" class="form-control" />
+            <input type="password" id="profilPassword" placeholder="Mot de passe" class="form-control" />
+            <br>
+            <input type="password" id="profilConfirmPassword" placeholder="Confirmation" class="form-control" />
+            <br>
+            <div style="vertical-align:top; text-align: center ">
+                <div class='imageDownloader' id='avatar' defautImageSrc='images/No_Avatar.png'></div>
+                <label>(cliquez pour la changer l'avatar)</label>
+            </div>
+        </form>
+    </div>
+
+    <!---WAITING DIALOG-------------------------------------------------------------------------->
+    <div id="dialog-waiting" title="" class="dialog">
+        <img src="images/writing.gif" alt="waiting" />
+    </div>
+
+    <!---SCRIPTS BUNDLE------------------------------------------------------------------------->
+    <script src="js/jquery-3.5.1.js"></script>
+    <script src="js/jquery-ui.js"></script>
+    <script src="js/Validation.js"></script>
+    <script src="js/WebAPIRequest.js"></script>
+    <script src="js/jquery-confirm.js"></script>
+    <script src="js/jquery.maskedinput.js"></script>
+    <script src="js/imageUploadUtilities.js"></script>
+
+    <!---nouvelle MANAGER UI SCRIPT------------------------------------------------------------->
+    <script>
+        "use strict";
+
+        $(document).ready(initUI);
+
+        let editMode = false;
+        let addMode = false;
+        let editProfil = false;
+        let connected = false;
+        let queryString = "";
+        let search = "";
+        let searchShowed = false;
+        let sorted = [{ field: "Created", desc: true }];
+        let currentETag = "";
+        let previousQueryString = "";
+        let nouvelleValidationProvider = null;
+        let profilValidationProvider = null;
+        let pausenouvellesListPeriodicRefresh = false;
+       // let pauseUserListPeriodicRefresh = false;
+        let periodicRefreshPeriod = 5; // seconds
+
+        function initUI() {
+            initnouvelleValidation();
+            initProfilValidation();
+
+            initnouvelleDialog();
+            initLoginDialog();
+            initProfilDialog();
+
+            $(".searchBar").hide();
+            $('#btn_RefreshButton').click(refreshPage);
+            $('#btn_OpenAddnouvelleDialog').click(OpenAddnouvelleDialog);
+            $("#btn_OpenLoginForm").click(OpenLoginForm);
+            $("#btn_OpenConfirmLogout").click(OpenConfirmLogout);
+            $("#btn_OpenProfilDialog").click(OpenProfilDialog);
+
+            $('#showSearch').click(toogleSearchVisibility);
+
+            $("#sort_Title").click(updateSort);
+            $("#sort_Created").click(updateSort);
+            $("#sort_Username").click(updateSort);
+
+            $("input[type=search").on("input", updatenouvellesSearch);
+            $("#dialog-waiting").dialog({
+                autoOpen: false,
+                show: { effect: 'fade', duration: 400 },
+                hide: { effect: 'fade', duration: 400 },
+                width: "200px"
+            });
+            insertWaitingStatus();
+            initnouvellesListColumnsLayout();
+
+            updatenouvellesSearch();
+            installPeriodicnouvellesListRefresh();
+            //installPeriodicuserListRefresh();
+        }
+
+        function installPeriodicnouvellesListRefresh() {
+            setInterval(() => {
+                if (!pausenouvellesListPeriodicRefresh & connected) getnouvelles();
+            }, periodicRefreshPeriod * 4000);
+        }
+    /* function installPeriodicuserListRefresh() {
+            setInterval(() => {
+                if (!pauseUserListPeriodicRefresh & connected) getUserlist();
+            }, periodicRefreshPeriod * 10000);
+        }
+        */
+        function initnouvellesListColumnsLayout() {
+            createCssClass('.columns-layout', "display: grid; grid-template-columns: 30% 30% 30% 5% 5%;");
+        }
+
+        function initnouvelleDialog() {
+            $("#dialog-nouvelleForm").dialog({
+                autoOpen: false,
+                show: { effect: 'fade', duration: 400 },
+                hide: { effect: 'fade', duration: 400 },
+                buttons: [
+                    {
+                        id: 'btn-Savenouvelle',
+                        text: 'Soumettre',
+                        click: function () {
+
+                            // Ajout d'un nouvelle
+                            if (addMode) {
+                                let nouvelle = makenouvelleFromnouvelleForm(false);
+                                if (nouvelleValidationProvider.isValid()) {
+                                    $("#dialog-waiting").dialog('open');
+                                    $("#dialog-nouvelleForm").dialog("close");
+                                    webAPI_POST(nouvelle, () => { updateUI(); }, AlertError);
+                                }
+                            } else {
+                                let nouvelle = makenouvelleFromnouvelleForm(true);
+                                if (nouvelleValidationProvider.isValid()) {
+                                    $("#dialog-waiting").dialog('open');
+                                    $("#dialog-nouvelleForm").dialog("close");
+                                    webAPI_PUT(nouvelle, () => { updateUI(); }, AlertError);
+                                }
+                            }
+                        }
+                    },
+                    {
+                        id: 'btn-Cancelnouvelle',
+                        text: 'Annuler',
+                        click: function () {
+                            $(this).dialog('close');
+                        }
+                    }
+                ]
+            });
+            $('#dialog-nouvelleForm').on('dialogopen', function (event) {
+                pausenouvellesListPeriodicRefresh = true;
+                $('#btn-Savenouvelle').addClass("btn btn-primary");
+                $('#btn-Cancelnouvelle').addClass("btn btn-secondary");
+                $('#nouvelleTitle').val("");
+                $('#nouvelleTexte').val(""); // todo set UserId field
+                clearImageData('nouvelle');
+                /// Tres important si on veut que la nouvelle par defaut soit affichée dans le dialogue
+                setImageDownloaderBlankImage('nouvelle');
+                $("#nouvelleUserId").val(retrieveLoggedUser().Id);
+                $("#btn_OpenAddnouvelleDialog").hide();
+            });
+            $('#dialog-nouvelleForm').on('dialogclose', function (event) {
+                addMode = false;
+                editMode = false;
+                pausenouvellesListPeriodicRefresh = false;
+                resetnouvelleValidation();
+                $("#btn_OpenAddnouvelleDialog").show();
+            });
+        }
+        function operationOnGoing() {
+            return addMode || editMode || editProfil;
+        }
+        function OpenAddnouvelleDialog() {
+            if (!operationOnGoing()) {
+                addMode = true;
+                $('#dialog-nouvelleForm').dialog('option', 'title', 'Ajout de nouvelle');
+                $("#dialog-nouvelleForm").dialog('open');
+            }
+        }
+        function OpenEditnouvelleDialog(e) {
+            e.preventDefault();
+            if (!operationOnGoing()) {
+                editMode = true;
+                $('#dialog-nouvelleForm').dialog('option', 'title', 'Modification de nouvelle');
+                $("#dialog-nouvelleForm").dialog('open');
+                let nouvelleId = e.currentTarget.id.split('_')[1];
+                webAPI_GET(nouvelleId, fillEditnouvelleForm, AlertError);
+            }
+        }
+        function fillEditnouvelleForm(nouvelle) {
+            $('#nouvelleId').val(nouvelle.Id);
+            $('#nouvelleUserId').val(nouvelle.UserId);
+            $('#nouvelleGUID').val(nouvelle.GUID);
+            $('#nouvelleTitle').val(nouvelle.Title);
+            $('#nouvelleCreated').val(nouvelle.Created);
+            $('#nouvelleTexte').val(nouvelle.Texte);
+            clearImageData('nouvelle');
+            if (nouvelle.OriginalURL != "")
+                /// Tres important si on veut que la nouvelle soit affichée dans le dialogue
+                setImageDownloaderImage('nouvelle', nouvelle.OriginalURL);
+            else
+                setImageDownloaderBlankImage('nouvelle');
+            //<div class='imageDownloader' id = 'nouvelle' defautImageSrc='images/No_image.png'></div>
+        }
+
+        function makenouvelleFromnouvelleForm(includeId = false) {
+            if (includeId) {
+                // Récupération du Id du nouvelle dans le contrôle caché
+                return {
+                    Id: parseInt($('#nouvelleId').val()),
+                    Title: $('#nouvelleTitle').val(),
+                    Texte: $('#nouvelleTexte').val(),
+                    Created: $('#nouvelleCreated').val(),
+                    GUID: $('#nouvelleGUID').val(),
+                    UserId: parseInt($('#nouvelleUserId').val()),
+                    ImageData: getImageData('nouvelle')
+                };
+            }
+            return {
+                Id: 0,
+                Title: $('#nouvelleTitle').val(),
+                Texte: $('#nouvelleTexte').val(),
+                Created: $('#nouvelleCreated').val(),
+                GUID: $('#nouvelleGUID').val(),
+                UserId: parseInt($('#nouvelleUserId').val()),
+                ImageData: getImageData('nouvelle')
+            };
+        }
+        function deletenouvelle(e) {
+            e.preventDefault();
+            if (!operationOnGoing()) {
+                // Extraction du Id du nouvelle inscrit dans l'attribut id de l'élément déclencheur de l'événement click
+                let nouvelleId = parseInt(e.currentTarget.id.split('_')[1]);
+                webAPI_GET(nouvelleId, confirmDeletenouvelle, AlertError);
+            }
+        }
+        function confirmDeletenouvelle(nouvelle) {
+            $.confirm({
+                title: 'Retrait de nouvelles',
+                content: '<b>' + nouvelle.Title + '</b>?',
+                buttons: {
+                    confirmer: function () {
+                        $("#dialog-waiting").dialog('open');
+                        webAPI_DELETE(nouvelle.Id, updateUI, AlertError);
+                    },
+                    annuler: {},
+                }
+            });
+        }
+
+        function initProfilDialog() {
+            $("#dialog-profilForm").dialog(
+                {
+                    autoOpen: false,
+                    show: { effect: 'fade', speed: 400 },
+                    hide: { effect: 'fade', speed: 400 },
+                    buttons: [
+                        {
+                            id: 'btn-SaveProfil',
+                            text: 'Enregister',
+                            click: function () {
+                                if (profilValidationProvider.isValid()) {
+                                    let profilFromForm = {
+                                        Id: parseInt($("#profilId").val()),
+                                        Name: $("#profilUsername").val(),
+                                        Email: $("#profilEmail").val(),
+                                        Password: $("#profilPassword").val(),
+                                        AvatarGUID: $("#avatarGUID").val(),
+                                        ImageData: getImageData('avatar')
+                                    }
+                                    $("#dialog-waiting").dialog('open');
+                                    if (connected) {
+                                        webAPI_ChangeProfil(profilFromForm, () => { $("#dialog-profilForm").dialog("close"); updateUI(); }, AlertError);
+                                    }
+                                    else {
+                                        profilFromForm.Id = 0;
+                                        webAPI_Register(profilFromForm, () => { $("#dialog-profilForm").dialog("close"); updateUI(); }, AlertError);
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            id: 'btn-CancelProfil',
+                            text: 'Annuler',
+                            click: function () {
+                                $(this).dialog('close');
+                            }
+                        },
+                        {
+                            id: 'btn-deleteProfil',
+                            text: 'Désinscription',
+                            click: function () {
+                                confirmDeleteAccount();
+                            }
+                        }
+                    ]
+                });
+            $('#dialog-profilForm').on('dialogopen', function (event) {
+                pausenouvellesListPeriodicRefresh = true;
+                resetProfilValidation();
+                $("#profilId").val(0);
+                $('#btn-SaveProfil').addClass("btn btn-primary");
+                $('#btn-deleteProfil').addClass("btn btn-danger");
+                $('#btn-CancelProfil').addClass("btn btn-secondary");
+                if (connected) {
+                    $('#dialog-profilForm').dialog('option', 'title', 'Modification de votre profil...');
+                    $("#profilId").val(retrieveLoggedUser().Id);
+                    $('#profilUsername').val(retrieveLoggedUser().Name);
+                    $('#profilEmail').val(retrieveLoggedUser().Email);
+                    $('#avatarGUID').val(retrieveLoggedUser().AvatarGUID);
+                    if (retrieveLoggedUser().AvatarURL != "")
+                        setImageDownloaderImage('avatar', retrieveLoggedUser().AvatarURL);
+                    else
+                        setImageDownloaderBlankImage('avatar');
+                    $('#btn-deleteProfil').show();
+                } else {
+                    $('#dialog-profilForm').dialog('option', 'title', 'Création de compte...');
+                    $('#profilUsername').val("");
+                    $('#profilEmail').val("");
+                    setImageDownloaderBlankImage('avatar');
+                    $('#btn-deleteProfil').hide();
+                }
+                $('#profilPassword').val("");
+                $('#profilConfirmPassword').val("");
+                $("#btn_OpenAddnouvelleDialog").hide();
+            });
+            $('#dialog-profilForm').on('dialogclose', function (event) {
+                pausenouvellesListPeriodicRefresh = false;
+                editProfil = false;
+                if (connected)
+                    $("#btn_OpenAddnouvelleDialog").show();
+            });
+        }
+        function OpenProfilDialog() {
+            if (!operationOnGoing()) {
+                pausenouvellesListPeriodicRefresh = true;
+                editProfil = true;
+                $("#dialog-profilForm").dialog('open');
+            }
+        }
+        function confirmDeleteAccount() {
+            pausenouvellesListPeriodicRefresh = true;
+            $.confirm({
+                title: 'Retrait de compte',
+                content: '<b>Voulez-vous vraiment effacer votre compte <br>ainsi que toutes vos nouvelles?</b>',
+                buttons: {
+                    confirmer:
+                        function () {
+                            if (connected) {
+                                webAPI_DELETE_Account(retrieveLoggedUser().Id,
+                                    function () {
+                                        closeAllDialog();
+                                        pausenouvellesListPeriodicRefresh = false;
+                                        forceLogout();
+                                    },
+                                    AlertError);
+                            }
+                        },
+                    annuler: {},
+                }
+            });
+        }
+
+        function initLoginDialog() {
+            $("#dialog-loginForm").dialog(
+                {
+                    autoOpen: false,
+                    show: { effect: 'fade', speed: 400 },
+                    hide: { effect: 'fade', speed: 400 },
+                    buttons: [
+                        {
+                            id: 'btn-OkLogin',
+                            text: 'Ok',
+                            click: function () {
+                                pausenouvellesListPeriodicRefresh = false;
+                                $("#dialog-waiting").dialog('open');
+                                webAPI_login($("#loginEmail").val(),
+                                    $("#loginPassword").val(),
+                                    () => {
+                                        $("#dialog-loginForm").dialog("close");
+                                        updateUI();
+                                    },
+                                    failLogin);
+                            }
+                        },
+                        {
+                            id: 'btn-CancelLogin',
+                            text: 'Annuler',
+                            click: function () {
+                                $(this).dialog('close');
+                            }
+                        }
+                    ]
+                });
+            $('#dialog-loginForm').on('dialogopen', function (event) {
+                pausenouvellesListPeriodicRefresh = true;
+                if (localStorage.getItem('rememberme') == "1") {
+                    $("#remember-me").attr("checked", "checked");
+                    let email = localStorage.getItem('loginemail');
+                    let password = localStorage.getItem('loginpassword');
+                    if (email) $("#loginEmail").val(email);
+                    if (password) $("#loginPassword").val(password);
+                } else {
+                    $("#loginEmail").val("");
+                    $("#loginPassword").val("");
+                }
+            });
+            $('#dialog-loginForm').on('dialogclose', function (event) {
+                pausenouvellesListPeriodicRefresh = false;
+                if ($('#remember-me').is(":checked")) {
+                    localStorage.setItem('rememberme', "1");
+                    localStorage.setItem('loginemail', $("#loginEmail").val());
+                    localStorage.setItem('loginpassword', $("#loginPassword").val());
+                } else {
+                    localStorage.setItem('rememberme', "0");
+                    localStorage.removeItem('loginemail');
+                    localStorage.removeItem('loginpassword');
+                }
+            });
+        }
+        function OpenConfirmLogout() {
+            if (!operationOnGoing()) {
+                $.confirm({
+                    title: 'Déconnection...',
+                    content: 'Voulez-vous vous déconnecter?',
+                    buttons: {
+                        confirmer: function () {
+                            pausenouvellesListPeriodicRefresh = false;
+                            webAPI_logout(retrieveLoggedUser().Id, updateUI, AlertError);
+                        },
+                        annuler: {},
+                    }
+                });
+            }
+        }
+        function OpenLoginForm() {
+            if (!operationOnGoing()) {
+                $('#btn-OkLogin').addClass("btn btn-primary");
+                $('#btn-CancelLogin').addClass("btn btn-secondary");
+                $("#dialog-loginForm").dialog('open');
+            }
+        }
+        function setUsername(username) {
+            $("#username").html("<span id='link_OpenProfilDialog' style='color:blue;' tooltip='Modifier votre profil' class='clickable'>" + username + "</span>");
+            $("#link_OpenProfilDialog").click(OpenProfilDialog);
+        }
+        function unsetUsername() {
+            $("#username").html("<span style='color:gray'>non connecté</span>");
+        }
+        function failLogin() {
+            Alert("Connexion échouée");
+            connected = false;
+            unsetUsername();
+            updateUI();
+        }
+        function updateConnected() {
+            connected = false;
+            let username = "";
+            if (retrieveLoggedUser() != null) {
+                username = retrieveLoggedUser().Name;
+                connected = true;
+            }
+            if (connected) {
+                setUsername(username);
+                $("#avatarContainer").empty();
+                $("#avatarContainer").append(html_fittedAvatar(retrieveLoggedUser().AvatarURL, 'avatar'));
+                $("#btn_OpenLoginForm").hide();
+                $("#btn_OpenConfirmLogout").show();
+                $("#btn_OpenAddnouvelleDialog").show();
+                $('#btn_OpenProfilDialog').attr("tooltip", "Profil");
+            }
+            else {
+                $("#avatarContainer").empty();
+                unsetUsername();
+                $("#btn_OpenLoginForm").show();
+                $("#btn_OpenConfirmLogout").hide();
+                $("#btn_OpenAddnouvelleDialog").hide();
+                $('#btn_OpenProfilDialog').attr("tooltip", "Création de compte");
+            }
+        }
+
+        function toogleSearchVisibility() {
+            if (searchShowed)
+                hideSearch();
+            else
+                showSearch();
+            searchShowed = !searchShowed;
+        }
+        function hideSearch() {
+            $(".searchBar").hide({ duration: 400 });
+            $("#showSearchIcon").removeClass("glyphicon glyphicon-zoom-out");
+            $("#showSearchIcon").addClass("glyphicon glyphicon-zoom-in");
+        }
+        function showSearch() {
+            $(".searchBar").show({ duration: 400 });
+            $("#showSearchIcon").removeClass("glyphicon glyphicon-zoom-in");
+            $("#showSearchIcon").addClass("glyphicon glyphicon-zoom-out");
+        }
+        function updateSort(e) {
+            let name = e.target.id.split('_')[1];
+            $("#dir_" + name).removeClass("glyphicon glyphicon-sort-by-attributes");
+            $("#dir_" + name).removeClass("glyphicon glyphicon-sort-by-attributes-alt");
+            let found = false;
+            for (let i = 0; i < sorted.length; i++) {
+                if (sorted[i].field == name) {
+                    found = true;
+                    if (sorted[i].desc)
+                        sorted.splice(i, 1);
+                    else
+                        sorted[i].desc = true;
+                    break;
+                }
+            }
+            if (!found)
+                sorted.push({ field: name, desc: false });
+            updatenouvellesSearch();
+        }
+        function addSearchKey(key, value) {
+            if (value != "") {
+                console.log(key + "key");
+                if (search != "") search += "&";
+                search += key + "=" + value + "*";
+            }
+        }
+
+        function updatenouvellesSearch() {
+            queryString = "";
+            let first = true;
+            let sortIndex = 0;
+            sorted.forEach(sort => {
+                if (first) {
+                    first = false;
+                    queryString += '?';
+                }
+                else queryString += '&';
+                queryString += "sort=" + sort.field.toLowerCase();
+                // opacité en fonction du rang de la clé de tri
+                $("#dir_" + sort.field).css("opacity", 1 - sortIndex / 3);
+                if (sort.desc) {
+                    queryString += ',desc';
+                    $("#dir_" + sort.field).addClass('glyphicon glyphicon-sort-by-attributes-alt');
+                } else
+                    $("#dir_" + sort.field).addClass('glyphicon glyphicon-sort-by-attributes');
+                sortIndex++;
+            });
+
+            search = "";
+            addSearchKey("Texte", $("#search_Texte").val());
+            addSearchKey("username", $("#search_user").val());
+            if (search != "") {
+                if (queryString != "")
+                    search = "&" + search;
+                else
+                    search = "?" + search;
+            }
+            queryString += search;
+            updateUI();
+        }
+
+        function updateUI() {
+            updateConnected();
+            getnouvelles(true);
+        }
+        function getnouvelles(forceRefreshnouvelleList = false) {
+            if (forceRefreshnouvelleList) {
+                webAPI_GET_ALL(queryString, updatenouvelleList, AlertError);
+            } else
+                webAPI_HEAD(checkETag, AlertError);
+        }
+         //function getUserlist(forceRefreshUserList = false) {
+         //   if (forceRefreshUserList) {
+         //       webAPI_GET_ALL(queryString, updateuserList, AlertError);
+         //   } else
+         //       webAPI_HEAD(checkETag, AlertError);
+         // }
+        function checkETag(ETag) {
+            if (ETag != currentETag) {
+                webAPI_GET_ALL(queryString, updatenouvelleList, AlertError);
+            }
+        }
+        function createCssClass(name, rules) {
+            var style = document.createElement('style');
+            style.type = 'text/css';
+            document.getElementsByTagName('head')[0].appendChild(style);
+            if (!(style.sheet || {}).insertRule)
+                (style.styleSheet || style.sheet).addRule(name, rules);
+            else
+                style.sheet.insertRule(name + "{" + rules + "}", 0);
+        }
+
+        function insertWaitingStatus() {
+            $('#nouvelleList').empty();
+            $("#dialog-waiting").dialog('open');
+        }
+        function statusToString(status) {
+            let text = "Le server ne répond pas.";
+            switch (status) {
+                case 401: text = "<br>Requête non autorisée. <br>Vous devez être connecté."; break;
+                case 409: text = "<br>Conflit de données. <br>Requête refusée."; break;
+                case 422: text = "<br>Format des données soumises incorrect. <br>Requête refusée."; break;
+            }
+            return text;
+        }
+        function closeAllDialog() {
+            $(".dialog").dialog("close");
+        }
+        function forceLogout() {
+            Alert("Expiration de permission d'accès. Vous n'êtes plus connecté.");
+            closeAllDialog();
+            deConnect();
+            updateUI(true);
+        }
+        function Alert(message) {
+            $.confirm({
+                title: message,
+                content: '',
+                buttons: {
+                    fermer: function () { }
+                }
+            });
+        }
+        function AlertError(status) {
+            $.confirm({
+                title: "Message provenant du server..." + status,
+                content: '<img src="images/error.png" style="width:60px;margin:10px" alt="httpError"/>' + statusToString(status),
+                buttons: {
+                    fermer: function () {
+                        this.close();
+                        if (status == 401) {
+                            forceLogout();
+                        }
+                        pausenouvellesListPeriodicRefresh = true;
+                    }
+                }
+            });
+        }
+
+        function initnouvelleValidation() {
+            nouvelleValidationProvider = new ValidationProvider("nouvelleForm");
+            nouvelleValidationProvider.addControl("nouvelleTitle", validate_nouvelleTitle, false /*validateOnLeave*/);
+            nouvelleValidationProvider.addControl("nouvelleTexte", validate_nouvelleTexte, false /*validateOnLeave*/);
+        }
+        function resetnouvelleValidation() {
+            nouvelleValidationProvider.reset();
+        }
+        function validate_nouvelleTitle() {
+            let TBX_Title = document.getElementById("nouvelleTitle");
+            if (TBX_Title.value === "")
+                return "Titre manquant";
+            return "";
+        }
+        function validate_nouvelleTexte() {
+            let TBX_Texte = document.getElementById("nouvelleTexte");
+            if (TBX_Texte.value === "")
+                return "Texte manquante";
+            return "";
+        }
+        function initProfilValidation() {
+            profilValidationProvider = new ValidationProvider("profilForm");
+            profilValidationProvider.addControl("profilUsername", validate_ProfilUsername, false /*validateOnLeave*/);
+            profilValidationProvider.addControl("profilEmail", validate_ProfilEmail, false /*validateOnLeave*/);
+            profilValidationProvider.addControl("profilPassword", validate_ProfilPassword, false /*validateOnLeave*/);
+            profilValidationProvider.addControl("profilConfirmPassword", validate_ProfilConfirmPassword, false /*validateOnLeave*/);
+        }
+        function resetProfilValidation() {
+            profilValidationProvider.reset();
+        }
+        function validate_ProfilUsername() {
+            let TBX_Username = document.getElementById("profilUsername");
+            if (TBX_Username.value === "")
+                return "Nom d'usager manquant";
+            return "";
+        }
+        function validate_ProfilEmail() {
+            let TBX_Email = document.getElementById("profilEmail");
+            let EmailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            if (TBX_Email.value === "")
+                return "Courriel manquant";
+            if (!EmailRegex.test(TBX_Email.value))
+                return "Courriel invalide";
+            return "";
+        }
+        function validate_ProfilPassword() {
+            return "";
+        }
+        function validate_ProfilConfirmPassword() {
+            let TBX_Password = document.getElementById("profilPassword");;
+            let TBX_Confirm = document.getElementById("profilConfirmPassword");
+            if (TBX_Password.value != "") {
+                if (TBX_Confirm.value != TBX_Password.value)
+                    return "Différent du mot de passe."
+            }
+            return "";
+        }
+
+        function cellOver(e) {
+            if (!addMode && !editMode) {
+                // currentTarget.className contient en principe : 'row_x cell ...'
+                let nouvelleId = e.currentTarget.className.split(' ')[0].split('_')[1];
+                $('#edit_' + nouvelleId).show();
+                $('#delete_' + nouvelleId).show();
+                $('.row_' + nouvelleId).addClass('selectedRow');
+            }
+        }
+        function cellBlur(e) {
+            if (!editMode) {
+                // currentTarget.className contient en principe : 'row_x cell ...'
+                let nouvelleId = e.currentTarget.className.split(' ')[0].split('_')[1];
+                $('#edit_' + nouvelleId).hide();
+                $('#delete_' + nouvelleId).hide();
+                $('.row_' + nouvelleId).removeClass('selectedRow');
+            }
+        }
+        function makeCell(content, cssClass) {
+            return $('<div class= "' + cssClass + '">' + content + '</div>');
+        }
+        function makeButton(cssClass, id, tooltip) {
+            return $('<span id="' + id + '" class="' + cssClass + '" style="margin-rigth:3px;"></span>');
+        }
+        function makeGlyphIcon(glyphIconId) {
+            return $("<div class='gicon glyphicon glyphicon-" + glyphIconId + "'></div>");
+        }
+        function makeHyperLink(url, caption) {
+            return '<a href="' + url + '"target="_blank">' + caption + '</a>';
+        }
+        function makeFavicon(url) {
+            // Utiliser l'API de google pour extraire le favicon du site pointé par url
+            // retourne un élément div comportant le favicon en tant qu'image de fond
+            ///////////////////////////////////////////////////////////////////////////
+            if (url.slice(-1) != '/') url += '/';
+            url = "http://www.google.com/s2/favicons?sz=64&domain=" + url;
+            return '<div class="favicon" style="background-image: url(' + url + ');"></div>';
+        }
+        function html_fittedAvatar(Avatar_url, css = '') {
+            return "<div class='" + css + "' style='background:url(" + Avatar_url + ") no-repeat center; background-size: cover; margin-right:5px;'></div>";
+        }
+        function html_fittedImage(url, css = '') {
+            return $(" <div class='" + css + "' style='background:url(" + url + ") no-repeat center; background-size: cover; margin-right:5px;'></div>");
+        }
+
+        function previewImageLink(url) {
+            return $("<a href='" + url + "' target='_blank'></a>");
+        }
+        function thumbNail(nouvelle, loggedUserId) {
+
+            let thumbnailContainer = $("<div class='thumbnailContainer'></div>");     
+            let thumbnailHeader = $("<div class='thumbnailHeader ellipsis'></div>");
+            thumbnailHeader.append("<text>" ,nouvelle.Title,"</text>");
+            let thumbnailBody =$("<div class='thumbnailBody'></div>");
+            let thumbnailfooter =$("<footer></footer>");
+            thumbnailfooter.append("<text>" ,nouvelle.Texte,"</text>");
+            let thumbnailAside =$("<aside></aside>");
+            let thumbnailOverAside =$("<aside></aside>");
+            //thumbnailHeader.append($("<br><span>" + nouvelle.Title + "</span>"));
+           //thumbnailHeader.append($("<br><span style='font-size:14px;color:green'>" + nouvelle.Username + "</span>"));
+            const options = { /*weekday: 'long', */year: 'numeric', month: 'long', day: 'numeric' }; //IN ASIDE******
+            thumbnailAside.append($("<br><span style='font-size:14px;color:lightblue'>" + new Date(nouvelle.Created * 1000).toLocaleDateString('fr-FR', options) + "</span>"));
+            let image = html_fittedImage(nouvelle.ThumbnailURL, "thumbnail");
+            if (connected && nouvelle.UserId == loggedUserId) {
+                // Bouton d'appel à la modification de la nouvelle
+                image.append(makeButton("editnouvelle btncmd", "edit_" + nouvelle.Id, "Modifier " + nouvelle.Title).append(makeGlyphIcon('pencil')));
+                // Bouton d'appel au retrait de nouvelle
+                image.append(makeButton("deletenouvelle btncmd", "delete_" + nouvelle.Id, "Effacer " + nouvelle.Title).append(makeGlyphIcon('remove')));
+                
+            }
+            thumbnailOverAside.append("<text>" ,nouvelle.Username,"</text>")
+            thumbnailBody.append(previewImageLink(nouvelle.OriginalURL).append(image));
+            thumbnailContainer.append(thumbnailOverAside);
+            thumbnailContainer.append(thumbnailHeader);
+            thumbnailContainer.append(thumbnailAside);
+            thumbnailContainer.append(thumbnailBody);
+            thumbnailContainer.append(thumbnailfooter);
+            return thumbnailContainer;
+        }
+
+        function updatenouvelleList(nouvelles, ETag) {
+            console.log(nouvelles)
+            currentETag = ETag;
+            $('#nouvelleList').empty();
+            let loggedUserId = (retrieveLoggedUser() ? retrieveLoggedUser().Id : null);
+            if (loggedUserId) {
+                nouvelles.forEach(nouvelle => {
+                        $('#nouvelleList').append(thumbNail(nouvelle, loggedUserId));
+                });
+                $('.editnouvelle').click(OpenEditnouvelleDialog);
+                $('.deletenouvelle').click(deletenouvelle);
+            }
+            $("#dialog-waiting").dialog('close');
+        }
+        /*
+        function updateuserList(nouvelles, ETag) {
+            console.log(nouvelles)
+            currentETag = ETag;
+            $('#userList').empty();
+            let loggedUserId = (retrieveLoggedUser() ? retrieveLoggedUser().Id : null);
+            if (loggedUserId) {
+                nouvelles.forEach(nouvelle => {
+                        $('#userList').append(userDropDownList(nouvelle, loggedUserId));
+                });
+            }
+        }
+        function userDropDownList(nouvelle, loggedUserId) {       ***************dropdownlistUser*******************
+        console.log(nouvelle);
+        let UserContainer;     
+        nouvelle.forEach(nouvelle =>{
+                    let allUsers;
+                    if(nouvelle.Username != allUsers)
+                    {
+                        let selectedtUser = $("<option value="+nouvelle.Username+">"+nouvelle.Username+"</option>")
+                        UserContainer.append(selectedtUser);
+                    }
+                });
+    return UserContainer;
+}
+*/
+        function refreshPage() {
+            location.reload();
+        }
+        
+    </script>
+</body>
+
+</html>
